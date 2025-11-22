@@ -1,0 +1,40 @@
+services:
+  # Main application server for AuraTech (Laravel/PHP backend)
+  auratech-api:
+    build: .
+    container_name: auratech-api-server
+    ports:
+      - "8082:80"
+    volumes:
+      - ./src:/var/www/html
+    depends_on:
+      - auratech-db
+
+  # Database service for AuraTech (MySQL)
+  auratech-db:
+    image: mysql:8.0
+    container_name: auratech-mysql-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: auratech_db
+      MYSQL_USER: auratech_user
+      MYSQL_PASSWORD: auratech_pass
+    ports:
+      - "3307:3306"
+    volumes:
+      - auratech_db_data:/var/lib/mysql
+
+  # Database management tool (phpMyAdmin)
+  auratech-pma:
+    image: phpmyadmin/phpmyadmin
+    container_name: auratech-phpmyadmin
+    restart: always
+    ports:
+      - "8081:80"
+    environment:
+      PMA_HOST: auratech-db
+      MYSQL_ROOT_PASSWORD: root
+
+volumes:
+  auratech_db_data:
