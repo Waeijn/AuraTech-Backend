@@ -3,9 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Category;
-use App\Http\Resources\CategoryResource;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 
 class CategoryController extends Controller
 {
@@ -14,7 +12,9 @@ class CategoryController extends Controller
      */
     public function index()
     {
-        return CategoryResource::collection(Category::withCount('products')->latest()->get());
+        // Get all categories with product count
+        $categories = Category::withCount('products')->latest()->get();
+        return CategoryResource::collection($categories);
     }
 
     /**
@@ -36,6 +36,7 @@ class CategoryController extends Controller
         ]);
 
         $validated['slug'] = Str::slug($validated['name']);
+
         $category = Category::create($validated);
 
         return new CategoryResource($category);
@@ -45,9 +46,10 @@ class CategoryController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show($id)
+    public function show(Category $category)
     {
-        $category = Category::with('products')->findOrFail($id);
+        // Load products relationship if needed
+        $category->load('products');
         return new CategoryResource($category);
     }
 
@@ -62,7 +64,7 @@ class CategoryController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, Category $category)
     {
         $category = Category::findOrFail($id);
 
@@ -82,9 +84,8 @@ class CategoryController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($id)
+    public function destroy(Category $category)
     {
-        Category::findOrFail($id)->delete();
-        return response()->json(['message' => 'Category deleted']);
+        //
     }
 }

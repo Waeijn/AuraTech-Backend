@@ -14,7 +14,8 @@ class ProductController extends Controller
      */
     public function index()
     {
-        return ProductResource::collection(Product::with('category')->latest()->get());
+        $products = Product::with('category')->latest()->get();
+        return ProductResource::collection($products);
     }
 
     /**
@@ -39,6 +40,7 @@ class ProductController extends Controller
         ]);
 
         $validated['slug'] = Str::slug($validated['name']);
+
         $product = Product::create($validated);
 
         return new ProductResource($product);
@@ -47,9 +49,9 @@ class ProductController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show($id)
+    public function show(Product $product)
     {
-        $product = Product::with('category')->findOrFail($id);
+        $product->load('category');
         return new ProductResource($product);
     }
 
@@ -64,10 +66,8 @@ class ProductController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, Product $product)
     {
-        $product = Product::findOrFail($id);
-
         $validated = $request->validate([
             'category_id' => 'sometimes|exists:categories,id',
             'name' => 'sometimes|string|max:255',
@@ -81,15 +81,16 @@ class ProductController extends Controller
         }
 
         $product->update($validated);
+
         return new ProductResource($product);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($id)
+    public function destroy(Product $product)
     {
-        Product::findOrFail($id)->delete();
-        return response()->json(['message' => 'Product deleted']);
+        $product->delete();
+        return response()->json(['message' => 'Product deleted successfully'], 200);
     }
 }
