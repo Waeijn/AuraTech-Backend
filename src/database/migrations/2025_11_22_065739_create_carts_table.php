@@ -6,14 +6,19 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
+ /**
      * Run the migrations.
      */
     public function up(): void
     {
         Schema::create('carts', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->timestamps();
+
+            // Indexes for better performance
+            $table->index('user_id');
+            $table->unique('user_id'); // Each user has only one cart
         });
     }
 
