@@ -5,14 +5,14 @@ namespace App\Services;
 use App\Models\Product;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 
 class ProductService
 {
     public function getFilteredProducts(array $filters, int $perPage): LengthAwarePaginator
     {
-        $query = Product::with(['category', 'images'])
-            ->where('stock', '>', 0);
+        $query = Product::with(['category', 'images']);
+
+        $query->where('stock', '>', 0);
 
         // Filter by category
         if (!empty($filters['category_id'])) {
@@ -34,6 +34,11 @@ class ProductService
         }
         if (!empty($filters['max_price'])) {
             $query->where('price', '<=', $filters['max_price']);
+        }
+
+        // Filter by featured products
+        if (isset($filters['featured']) && $filters['featured'] !== null) {
+            $query->where('featured', (bool)$filters['featured']);
         }
 
         // Sorting
@@ -58,7 +63,9 @@ class ProductService
                 'description' => $data['description'] ?? null,
                 'price' => $data['price'],
                 'stock' => $data['stock'],
-                'category_id' => $data['category_id']
+                'category_id' => $data['category_id'],
+                'featured' => $data['featured'] ?? false, // ✅ ADD THIS
+                'specifications' => $data['specifications'] ?? null // ✅ ADD THIS
             ]);
 
             // Handle images if provided
@@ -84,7 +91,9 @@ class ProductService
                 'description' => $data['description'] ?? $product->description,
                 'price' => $data['price'] ?? $product->price,
                 'stock' => $data['stock'] ?? $product->stock,
-                'category_id' => $data['category_id'] ?? $product->category_id
+                'category_id' => $data['category_id'] ?? $product->category_id,
+                'featured' => $data['featured'] ?? $product->featured, // ✅ ADD THIS
+                'specifications' => $data['specifications'] ?? $product->specifications // ✅ ADD THIS
             ]);
 
             // Handle image updates if provided

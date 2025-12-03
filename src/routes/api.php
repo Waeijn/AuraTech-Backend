@@ -55,6 +55,8 @@ Route::prefix('products')->group(function () {
     // Admin Product Management
     Route::middleware(['auth:sanctum', 'admin'])->group(function () {
         Route::post('/', [ProductController::class, 'store']);
+        Route::post('/upload-image', [ImageController::class, 'upload'])
+            ->middleware(['auth:sanctum', 'admin']);
         Route::put('/{product}', [ProductController::class, 'update']);
         Route::delete('/{product}', [ProductController::class, 'destroy']);
     });
