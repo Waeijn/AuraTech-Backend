@@ -1,4 +1,3 @@
-// config/cors.php
 <?php
 
 return [
@@ -7,27 +6,16 @@ return [
     |--------------------------------------------------------------------------
     | Cross-Origin Resource Sharing (CORS) Configuration
     |--------------------------------------------------------------------------
-    |
-    | Here you may configure your settings for cross-origin resource sharing
-    | or "CORS". This determines what cross-origin operations may execute
-    | in web browsers. You are free to adjust these settings as needed.
-    |
-    | To learn more: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
-    |
     */
 
+    // Allow CORS for all API routes
     'paths' => ['api/*', 'sanctum/csrf-cookie'],
 
+    // ALLOW ALL METHODS (GET, POST, PUT, DELETE, etc.)
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => [
-        'http://localhost:3000',
-        'http://localhost:5173',
-        'http://localhost:8080',
-        'http://127.0.0.1:3000',
-        'http://127.0.0.1:5173',
-        'http://127.0.0.1:8080',
-    ],
+    // CRITICAL FIX: Allow your React Frontend URL specifically, or '*' for all
+    'allowed_origins' => ['http://localhost:3000', '*'],
 
     'allowed_origins_patterns' => [],
 
@@ -37,6 +25,7 @@ return [
 
     'max_age' => 0,
 
+    // Set to true so Auth tokens/cookies can pass through
     'supports_credentials' => true,
 
 ];

@@ -1,6 +1,8 @@
 <?php
 
+
 namespace App\Http\Controllers;
+
 
 use App\Http\Requests\Order\CheckoutRequest;
 use App\Http\Resources\OrderResource;
@@ -9,22 +11,41 @@ use App\Services\OrderService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
+
 class OrderController extends Controller
 {
-     public function __construct(private OrderService $orderService)
+    public function __construct(private OrderService $orderService)
     {
     }
 
+
     /**
-     * Get all orders for authenticated user
+     * Get orders (Admin sees all, User sees their own)
      */
     public function index(Request $request): JsonResponse
     {
-        $orders = $request->user()
-            ->orders()
-            ->with(['items.product'])
-            ->recent()
-            ->paginate(10);
+        $user = $request->user();
+
+
+        // 1. CHECK: Is the user an Admin?
+        // We check both 'role' string and 'is_admin' boolean to be safe
+        $isAdmin = ($user->role === 'admin' || $user->is_admin == 1);
+
+
+        if ($isAdmin) {
+            // ADMIN MODE: Fetch ALL orders from the database
+            // We load 'user' too so the admin knows who bought it
+            $orders = Order::with(['items.product', 'user'])
+                ->orderBy('created_at', 'desc')
+                ->paginate(10);
+        } else {
+            // CUSTOMER MODE: Fetch only THEIR orders
+            $orders = $user->orders()
+                ->with(['items.product'])
+                ->orderBy('created_at', 'desc')
+                ->paginate(10);
+        }
+
 
         return response()->json([
             'success' => true,
@@ -38,6 +59,7 @@ class OrderController extends Controller
         ]);
     }
 
+
     /**
      * Show the form for creating a new resource.
      */
@@ -45,6 +67,7 @@ class OrderController extends Controller
     {
         //
     }
+
 
     /**
      * Store a newly created resource in storage.
@@ -54,26 +77,33 @@ class OrderController extends Controller
         //
     }
 
+
      /**
      * Get single order details
      */
     public function show(Request $request, Order $order): JsonResponse
     {
-        // Ensure user can only view their own orders
-        if ($order->user_id !== $request->user()->id && !$request->user()->is_admin) {
+        // Allow Admin to view ANY order
+        $isAdmin = ($request->user()->role === 'admin' || $request->user()->is_admin == 1);
+
+
+        if ($order->user_id !== $request->user()->id && !$isAdmin) {
             return response()->json([
                 'success' => false,
                 'message' => 'Unauthorized'
             ], 403);
         }
 
+
         $order->load(['items.product', 'user']);
+
 
         return response()->json([
             'success' => true,
             'data' => new OrderResource($order)
         ]);
     }
+
 
      /**
      * Process checkout and create order
@@ -85,7 +115,6 @@ class OrderController extends Controller
                 $request->user(),
                 $request->validated()
             );
-
             return response()->json([
                 'success' => true,
                 'message' => 'Order placed successfully',
@@ -98,6 +127,7 @@ class OrderController extends Controller
             ], 422);
         }
     }
+
 
     /**
      * Cancel an order (only if pending)
@@ -112,6 +142,7 @@ class OrderController extends Controller
             ], 403);
         }
 
+
         if (!$order->isPending()) {
             return response()->json([
                 'success' => false,
@@ -119,7 +150,9 @@ class OrderController extends Controller
             ], 422);
         }
 
+
         $this->orderService->cancelOrder($order);
+
 
         return response()->json([
             'success' => true,
@@ -127,25 +160,33 @@ class OrderController extends Controller
             'data' => new OrderResource($order->fresh(['items.product']))
         ]);
     }
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Order $order)
-    {
-        //
-    }
+
 
     /**
-     * Update the specified resource in storage.
+     * UPDATE STATUS (For Admin Order Review)
+     * This was missing!
      */
     public function update(Request $request, Order $order)
     {
-        //
+        // Validate Status
+        $request->validate([
+            'status' => 'required|in:pending,processing,completed,cancelled'
+        ]);
+
+
+        // Update the status
+        $order->status = $request->status;
+        $order->save();
+
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Order status updated',
+            'data' => new OrderResource($order)
+        ]);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
+
     public function destroy(Order $order)
     {
         //
