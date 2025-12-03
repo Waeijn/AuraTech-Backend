@@ -11,7 +11,7 @@ class StoreProductRequest extends FormRequest
         return true;
     }
 
-    public function rules(): array
+ public function rules(): array
     {
         return [
             'name' => 'required|string|max:255',
@@ -22,7 +22,10 @@ class StoreProductRequest extends FormRequest
             'category_id' => 'required|exists:categories,id',
             'featured' => 'nullable|boolean',
             'specifications' => 'nullable|array',
-            'image' => 'nullable|string' 
+            
+            'images' => 'nullable|array',
+            'images.*.url' => 'required_with:images|string',
+            'images.*.is_primary' => 'nullable|boolean'
         ];
     }
 }
