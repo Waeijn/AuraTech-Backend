@@ -17,11 +17,8 @@ class ProductResource extends JsonResource
             'featured' => (bool) $this->featured,
             'description' => $this->description,
 
-            // 👇 CRITICAL FIX 1: Always send category_id (Removed the 'when' condition)
             'category_id' => $this->category_id,
 
-            // 👇 CRITICAL FIX 2: Send the full Category Object (Not just the name string)
-            // This allows your frontend to read product.category.name if needed
             'category' => new CategoryResource($this->whenLoaded('category')),
 
             'specifications' => $this->specifications ?? new \stdClass(),

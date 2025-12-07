@@ -35,7 +35,6 @@ Route::middleware('auth:sanctum')->group(function () {
         // ADMIN: Update Status
         Route::put('/{order}', [OrderController::class, 'update']);
 
-        // 👇 THIS WAS MISSING! Add this line to fix the 405 error:
         Route::delete('/{order}', [OrderController::class, 'destroy']);
     });
 
@@ -58,8 +57,6 @@ Route::prefix('products')->group(function () {
     // Admin Product Management
     Route::middleware(['auth:sanctum', 'admin'])->group(function () {
         Route::post('/', [ProductController::class, 'store']);
-        // Note: Make sure ImageController is imported if you use this
-        // Route::post('/upload-image', [ImageController::class, 'upload']);
         Route::put('/{product}', [ProductController::class, 'update']);
         Route::delete('/{product}', [ProductController::class, 'destroy']);
     });

@@ -162,10 +162,6 @@ class OrderController extends Controller
     }
 
 
-    /**
-     * UPDATE STATUS (For Admin Order Review)
-     * This was missing!
-     */
     public function update(Request $request, Order $order)
     {
         // Validate Status

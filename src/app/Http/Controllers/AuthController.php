@@ -81,16 +81,10 @@ class AuthController extends Controller
         ]);
     }
 
-
-    // [SECURE FIX] Allow Admins to see the list of users
     public function index(Request $request): JsonResponse
     {
-        // Security Check: Ensure only admins can access this
-        // (This is a double-check in case the route middleware fails)
         if (!$request->user()->tokenCan('admin') && !$request->user()->is_admin && $request->user()->role !== 'admin') {
-             // You can adjust this check based on how your DB stores admins
         }
-
 
         return response()->json([
             'success' => true,
@@ -98,7 +92,6 @@ class AuthController extends Controller
         ]);
     }
 
-    // [NEW] Update User Role (Fix for 500 Error)
     public function update(Request $request, \App\Models\User $user): JsonResponse
     {
         // 1. Security: Only Admins can do this

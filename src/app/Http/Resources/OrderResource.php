@@ -24,7 +24,7 @@ class OrderResource extends JsonResource
             'status' => $this->status,
             'payment_method' => $this->payment_method,
             'payment_status' => $this->payment_status,
-            // FIX: Use PHP method toIso8601String(), NOT toISOString()
+
             'paid_at' => $this->paid_at?->toIso8601String(),
 
             // Shipping info
@@ -60,7 +60,6 @@ class OrderResource extends JsonResource
 
             'user' => new UserResource($this->whenLoaded('user')),
 
-            // FIX: Use PHP method toIso8601String()
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String()
         ];
