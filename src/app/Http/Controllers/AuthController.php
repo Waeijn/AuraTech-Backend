@@ -97,4 +97,30 @@ class AuthController extends Controller
             'data' => \App\Models\User::all()
         ]);
     }
+
+    // [NEW] Update User Role (Fix for 500 Error)
+    public function update(Request $request, \App\Models\User $user): JsonResponse
+    {
+        // 1. Security: Only Admins can do this
+        if (!$request->user()->tokenCan('admin') && !$request->user()->is_admin) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        // 2. Validate (This automatically STRIPS the illegal 'role' field!)
+        $validated = $request->validate([
+            'name' => 'sometimes|string|max:255',
+            'email' => 'sometimes|email|unique:users,email,' . $user->id,
+            'is_admin' => 'sometimes|boolean'
+        ]);
+
+        // 3. Update the user
+        $user->update($validated);
+
+        // 4. Return success
+        return response()->json([
+            'success' => true,
+            'message' => 'User updated successfully',
+            'data' => new UserResource($user)
+        ]);
+    }
 }

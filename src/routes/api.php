@@ -32,11 +32,14 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/checkout', [OrderController::class, 'checkout']);
         Route::post('/{order}/cancel', [OrderController::class, 'cancel']);
 
-        // ADMIN: Update Status (Required for Order Review)
+        // ADMIN: Update Status
         Route::put('/{order}', [OrderController::class, 'update']);
+
+        // 👇 THIS WAS MISSING! Add this line to fix the 405 error:
+        Route::delete('/{order}', [OrderController::class, 'destroy']);
     });
 
-    // ADMIN: User Management (Required for Users Page)
+    // ADMIN: User Management
     Route::get('/users', [AuthController::class, 'index']);
     Route::delete('/users/{user}', [AuthController::class, 'destroy']);
     Route::put('/users/{user}', [AuthController::class, 'update']);
@@ -55,8 +58,8 @@ Route::prefix('products')->group(function () {
     // Admin Product Management
     Route::middleware(['auth:sanctum', 'admin'])->group(function () {
         Route::post('/', [ProductController::class, 'store']);
-        Route::post('/upload-image', [ImageController::class, 'upload'])
-            ->middleware(['auth:sanctum', 'admin']);
+        // Note: Make sure ImageController is imported if you use this
+        // Route::post('/upload-image', [ImageController::class, 'upload']);
         Route::put('/{product}', [ProductController::class, 'update']);
         Route::delete('/{product}', [ProductController::class, 'destroy']);
     });
