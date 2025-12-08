@@ -162,10 +162,6 @@ class OrderController extends Controller
     }
 
 
-    /**
-     * UPDATE STATUS (For Admin Order Review)
-     * This was missing!
-     */
     public function update(Request $request, Order $order)
     {
         // Validate Status
@@ -186,9 +182,24 @@ class OrderController extends Controller
         ]);
     }
 
-
-    public function destroy(Order $order)
+    public function destroy(Request $request, Order $order): JsonResponse
     {
-        //
+        $user = $request->user();
+
+        $isAdmin = ($user->role === 'admin' || $user->is_admin == 1);
+
+        if (!$isAdmin) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized: Only admins can delete orders.'
+            ], 403);
+        }
+
+        $order->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Order deleted successfully'
+        ]);
     }
 }

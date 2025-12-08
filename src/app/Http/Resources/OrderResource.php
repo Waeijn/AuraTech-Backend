@@ -13,19 +13,20 @@ class OrderResource extends JsonResource
             'id' => $this->id,
             'order_number' => $this->order_number,
             'user_id' => $this->user_id,
-            
+
             // Totals
             'subtotal' => $this->subtotal,
             'tax' => $this->tax,
             'shipping' => $this->shipping,
             'total' => $this->total,
-            
+
             // Status
             'status' => $this->status,
             'payment_method' => $this->payment_method,
             'payment_status' => $this->payment_status,
-            'paid_at' => $this->paid_at?->toISOString(),
-            
+
+            'paid_at' => $this->paid_at?->toIso8601String(),
+
             // Shipping info
             'shipping_name' => $this->shipping_name,
             'shipping_email' => $this->shipping_email,
@@ -35,14 +36,32 @@ class OrderResource extends JsonResource
             'shipping_state' => $this->shipping_state,
             'shipping_zip' => $this->shipping_zip,
             'shipping_country' => $this->shipping_country,
-            
+
             // Additional
             'notes' => $this->notes,
-            'items' => OrderItemResource::collection($this->whenLoaded('items')),
+
+            // Manually map items to include Product Name
+            'items' => $this->whenLoaded('items', function () {
+                return $this->items->map(function ($item) {
+                    return [
+                        'id' => $item->id,
+                        'quantity' => $item->quantity,
+                        'price' => $item->price,
+                        'total' => $item->price * $item->quantity,
+                        'name' => $item->product ? $item->product->name : 'Unknown Product',
+                        'product' => $item->product ? [
+                            'id' => $item->product->id,
+                            'name' => $item->product->name,
+                            'image' => $item->product->image ?? null,
+                        ] : null,
+                    ];
+                });
+            }),
+
             'user' => new UserResource($this->whenLoaded('user')),
-            
-            'created_at' => $this->created_at?->toISOString(),
-            'updated_at' => $this->updated_at?->toISOString()
+
+            'created_at' => $this->created_at?->toIso8601String(),
+            'updated_at' => $this->updated_at?->toIso8601String()
         ];
     }
 }
